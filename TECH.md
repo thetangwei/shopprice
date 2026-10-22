@@ -41,7 +41,7 @@ assets/js/app.js           hash 路由、表单事件、自动保存、删除、
 - `normalizeBarcodeValue()`：条码查重时统一比较形式。
 - `readStorage()` / `persistAll()`：带异常捕获的读写；保存失败会回滚内存状态并提示。
 - `openModal()` / `toast()`：统一弹窗焦点管理和消息提示。
-- `APP.version = '2.0.0'`，`schemaVersion = 1`。
+- `APP.version = '2.0.1'`，`schemaVersion = 1`。
 
 ### 路由（app.js）
 

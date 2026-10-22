@@ -1655,17 +1655,23 @@ svg {
 }
 
 .scanner-reader {
+    position: relative;
     width: 100%;
-    min-height: 220px;
+    height: 260px;
+    min-height: 0;
     background: #0a0f0c;
     border-radius: var(--radius-md);
     overflow: hidden;
     margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .scanner-reader video {
     width: 100% !important;
-    height: auto !important;
+    height: 100% !important;
+    object-fit: cover;
     border-radius: var(--radius-md);
     display: block;
 }
@@ -1707,6 +1713,12 @@ svg {
     color: var(--color-text-tertiary);
     margin-top: 7px;
     line-height: 1.55;
+}
+
+@media (max-height: 700px) {
+    .scanner-reader {
+        height: 180px;
+    }
 }
 
 /* ---------- Misc ---------- */

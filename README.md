@@ -1,6 +1,6 @@
 # 店价宝 ShopPrice
 
-![版本](https://img.shields.io/badge/version-2.0.0-0f766e?style=flat-square)
+![版本](https://img.shields.io/badge/version-2.0.1-0f766e?style=flat-square)
 ![许可](https://img.shields.io/badge/license-MIT-green?style=flat-square)
 ![离线](https://img.shields.io/badge/works-offline-success?style=flat-square)
 ![无后端](https://img.shields.io/badge/backend-none-brightgreen?style=flat-square)
