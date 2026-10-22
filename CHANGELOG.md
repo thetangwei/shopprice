@@ -1,27 +1,85 @@
 # Changelog
 
-All notable changes to this project will be documented in this file.
+本项目的重要变更记录在此文件。格式参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，版本号遵循语义化版本。
 
 ---
 
-## [1.0.0] - 2026-03-25
+## [2.0.0] — 2026-10-23
+
+店价宝 ShopPrice 首个版本：从 Mini POS Market 重构为中文商品价格管理工具。
 
 ### Added
-- Split-screen POS layout (products left, cart right)
-- Cash & Card payment with automatic change calculator
-- Credit sales ("pe caiet") with customer name tracking
-- Undo last sale — works for cash, card and debt payments
-- Full product CRUD with editable code and initial quantity
-- Sortable stock table (click any column header)
-- CSV import with automatic Total Cost calculation
-- CSV export for stock and all report tabs
-- Statistics dashboard: sales, profit, investment, potential revenue
-- Sales history with payment type column (Cash / Card / Pe Caiet)
-- Daily revenue breakdown — cash vs card vs credit per day
-- Top products by profit and by quantity sold
-- Customer debt tracking with partial/full payment support
-- Debt totals summary row (total / paid / remaining)
-- Payment undo that restores debt to active state
-- Auto dark/light mode via OS preference
-- Low stock warning under 10 units
-- 100% offline — localStorage persistence, zero dependencies
+
+- **商品管理**：新增、详情、编辑、删除；名称、条码、规格、分类、进货价、售价、备注、创建/更新时间。
+- **扫码查价**：本地化 `html5-qrcode` 摄像头扫码；未知条码直达新增页；手动输入条码作为回退。
+- **价格历史**：新增商品记录初始价格；仅进货价或售价变化时追加修改前后记录；记录来源（初始/编辑/导入/迁移，恢复时保留原来源）。
+- **自动保存**：编辑页停止输入 600ms 后自动保存，离开页面前 flush；保存失败回滚并提示。
+- **查询与筛选**：按名称/条码搜索、分类筛选、最近更新/名称/售价排序。
+- **CSV**：商品与价格历史导出；商品 CSV 先预览后导入；条码重复、缺字段、非法价格检查；默认跳过已有条码，可选按条码更新；兼容旧版表头。
+- **备份恢复**：完整 JSON 备份；合并/覆盖两种恢复模式；冲突统计、无效项说明、二次确认、覆盖前可自动备份。
+- **数据管理**：显示商品数、历史数和孤立历史；清空数据前可自动下载备份。
+- **旧版迁移**：自动识别 Mini POS Market 的 `products` 数据，映射编码、价格、库存备注，生成迁移历史，保留原键且只迁移一次。
+- **移动端界面**：中文 UI、底部导航（首页/商品/数据管理）、浅色/深色主题、安全区适配。
+- **可见的数据提示**：首页与数据管理页明确提示本地存储、不同步和备份要求。
+- **测试与文档**：48 项 Playwright 端到端检查；README、TECH、DEPLOYMENT、TESTING 文档。
+
+### Changed
+
+- 品牌从 Mini POS Market 改为“店价宝 ShopPrice”，标语“商品扫码查，价格随时记。”。
+- 存储改为 `shopprice_products_v1`、`shopprice_price_history_v1`、`shopprice_meta_v1`。
+- 商品 ID 改为 UUID；旧 `code` 映射为 `barcode`。
+- CSV 导出改为 UTF-8 BOM + CRLF，Excel 中文不再乱码。
+- 主题改为浅色优先的翡翠绿/青色，并保留深色模式。
+- 布局从“商品 + 购物车分屏”改为移动优先的单列页面。
+
+### Removed
+
+- 收银/购物车、现金与刷卡结账、找零计算。
+- 赊账/欠款与还款。
+- 库存数量、低库存提醒、进货与销量统计。
+- 销售报表、利润统计、日营收、热销商品。
+- 会员、积分、市场价查询、云同步、AI 定价等非价格管理功能。
+
+### Security / Privacy
+
+- 无后端、无登录、无遥测、无第三方网络请求；扫码库本地加载。
+- 用户输入统一 HTML 转义；价格与条码导入前校验。
+- 数据保存在浏览器 `localStorage`，未加密；文档明确提示设备访问风险与备份要求。
+
+### Fixed
+
+- 避免旧版数据迁移时覆盖新数据：仅在新键不存在且未初始化时执行。
+- 避免 CSV 导入静默覆盖：默认跳过已有条码，更新需显式选择。
+- 避免备份恢复静默覆盖：默认合并，覆盖需二次确认。
+- 避免无摄像头环境下无法查价：手动条码输入始终可用。
+- 避免删除商品时历史处理不清：弹窗内明确选择保留或删除。
+- 避免读取异常时写入导致二次损坏：检测到异常即暂停写入并引导恢复。
+
+### Known Issues
+
+- 未在真实手机摄像头硬件上做条码识别测试；当前仅验证手动回退与跳转。
+- 数据不跨设备同步，需手动备份恢复。
+- 摄像头扫码要求 HTTPS 或 localhost。
+- 价格历史不支持单条编辑或删除。
+
+---
+
+## [1.0.0] — 2026-03-25
+
+原 Mini POS Market 初始版本（历史记录，功能已在 2.0.0 中移除）：
+
+- 分屏收银：商品列表 + 购物车。
+- 现金/刷卡支付、找零计算、赊账与客户欠款。
+- 销售撤销、欠款还款与撤销。
+- 商品 CRUD、初始库存、低库存提醒。
+- 可排序库存表、CSV 导入导出。
+- 销售/利润/投资/潜在收入统计、日营收、热销商品。
+- 自动浅色/深色主题，纯离线 `localStorage`，零依赖。
+
+---
+
+## 版本说明
+
+- `2.0.0`：品牌与定位重构，存储结构不兼容旧版，但提供自动迁移。
+- 升级前请下载完整 JSON 备份。
+- 回退到 1.x 时，新版键不会被旧版读取；请保留旧键或从备份恢复。

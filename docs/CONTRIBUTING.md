@@ -1,37 +1,85 @@
-# 🤝 Contributing
+# 参与贡献
 
-Thank you for your interest in contributing to Mini POS Market!
+感谢你愿意改进店价宝 ShopPrice。
 
-## 🐛 Reporting Bugs
+## 报告问题
 
-Use the [Bug Report](.github/ISSUE_TEMPLATE/bug_report.md) template.  
-Include: browser name + version, steps to reproduce, expected vs actual behavior.
+提交 issue 时请包含：
 
-## 💡 Suggesting Features
+- 浏览器名称与版本、操作系统、设备型号；
+- 访问方式（`file://`、`localhost`、HTTPS 域名）；
+- 复现步骤、预期结果、实际结果；
+- 是否涉及摄像头、CSV 导入或备份恢复；
+- 控制台报错截图（如有）。
 
-Use the [Feature Request](.github/ISSUE_TEMPLATE/feature_request.md) template.
+**不要附上包含真实商品、价格或客户信息的备份文件。** 如需样例，可自行构造测试数据。
 
-## 🔧 Making Changes
+## 提出功能建议
 
-1. Fork the repository
-2. Create a branch: `git checkout -b feature/your-feature-name`
-3. Make your changes in `index.html`
-4. Test in at least Chrome and Firefox
-5. Submit a Pull Request with a clear description
+店价宝的定位是“商品价格记录与查询”，不是收银或库存系统。以下方向通常不会被接受：
 
-## 📐 Code Style
+- 购物车、结账、支付、挂账；
+- 库存数量、进货单、销量报表；
+- 会员、积分、优惠券；
+- 市场价抓取、AI 定价、云同步、订阅。
 
-- Vanilla JS only — no frameworks or libraries
-- Keep everything in a single `index.html` file
-- Use CSS variables for all colors (`var(--color-*)`)
-- Comments in English
-- Functions should do one thing
+欢迎的方向：更快的查价与录入、价格历史可读性、移动端体验、无障碍、CSV/备份可靠性、离线与隐私。
 
-## ✅ Testing Checklist
+## 本地开发
 
-Before submitting a PR, verify:
-- [ ] Works offline (no network requests)
-- [ ] Dark mode looks correct
-- [ ] Mobile/responsive layout not broken
-- [ ] CSV import/export still works
-- [ ] localStorage data persists across page reloads
+无需构建、无需安装运行时依赖：
+
+```bash
+python -m http.server 8123
+# 打开 http://localhost:8123/
+```
+
+修改后直接刷新页面。若浏览器缓存了旧 JS/CSS，使用强制刷新。
+
+### 代码结构
+
+- `index.html`：页面骨架、SVG symbol、脚本顺序。
+- `assets/styles.css`：所有样式，使用 CSS 变量。
+- `assets/js/core.js`：常量、工具、存储、迁移、弹窗/提示。
+- `assets/js/views.js`：页面渲染。
+- `assets/js/data-csv.js`：CSV。
+- `assets/js/data-backup.js`：JSON 备份恢复。
+- `assets/js/scanner.js`：扫码。
+- `assets/js/app.js`：路由、表单、自动保存、事件、启动。
+
+目前模块通过全局函数协作，没有 ES Module 或打包器。新增脚本时需同步 `index.html` 的加载顺序。
+
+## 代码规范
+
+- 原生 HTML/CSS/JavaScript，不引入前端框架或运行时 CDN。
+- 用户输入进入 `innerHTML` 前必须 `esc()`；价格先经 `parsePriceValue()`。
+- 所有 `localStorage` 读写必须处理异常；写失败要回滚内存状态。
+- 价格历史只能通过 `buildPriceHistory()` 生成，保持字段与来源一致。
+- 新增/修改文案使用简体中文，语气简洁。
+- 颜色使用 `var(--color-*)`，同时检查浅色与深色模式。
+- 不使用 `alert()`/`confirm()`，统一使用应用内弹窗和 toast。
+- 保持无后端、无遥测、无第三方网络请求。
+
+## 提交前检查
+
+- [ ] 新增商品、刷新后数据仍在
+- [ ] 编辑自动保存正常；价格变化才写历史
+- [ ] 删除商品的两道确认与历史选择正常
+- [ ] 搜索、筛选、排序正常
+- [ ] CSV 导入预览、重复条码、非法价格提示正常
+- [ ] 完整备份可下载并恢复
+- [ ] 390px 宽度无横向溢出
+- [ ] 浅色/深色模式均可用
+- [ ] 无控制台错误
+- [ ] 运行 `npm run test:e2e`（需先启动本地服务器）
+
+## 提交 Pull Request
+
+1. Fork 仓库并创建分支：`git checkout -b feature/your-change`。
+2. 保持改动聚焦，避免顺手重构无关代码。
+3. 说明改了什么、为什么改、如何验证。
+4. 涉及数据结构或存储键时，必须同时更新迁移逻辑、备份解析和 `TECH.md`。
+
+## 许可
+
+提交的代码默认按本项目的 MIT License 发布。引入第三方代码前请确认许可证兼容，并保留版权与许可文本。
