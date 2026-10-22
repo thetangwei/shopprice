@@ -215,56 +215,60 @@ function renderProducts(route) {
     const hasFilters = Boolean(state.filters.q.trim() || state.filters.category);
 
     return `
-        <div class="page">
-            <div class="page-head">
-                <div>
-                    <h1>商品</h1>
-                    <p class="page-subtitle" id="products-subtitle">共 ${state.products.length} 件商品，按价格变化随时更新</p>
-                </div>
-                <button type="button" class="btn btn-primary" data-action="add-product">
-                    ${icon('plus')} 添加商品
-                </button>
-            </div>
-
-            <div class="toolbar">
-                <div class="search-input-wrap">
-                    <label class="sr-only" for="product-search">搜索商品名称或条码</label>
-                    <input type="search" id="product-search" placeholder="搜索商品名称或条码"
-                        value="${esc(state.filters.q)}" autocomplete="off">
-                </div>
-                <div class="toolbar-row">
+        <div class="page page-products">
+            <div class="products-fixed">
+                <div class="page-head">
                     <div>
-                        <label class="sr-only" for="filter-category">按分类筛选</label>
-                        <select id="filter-category">
-                            <option value="">全部分类</option>
-                            ${categories.map((category) => `
-                                <option value="${esc(category)}" ${state.filters.category === category ? 'selected' : ''}>
-                                    ${esc(category)}
-                                </option>`).join('')}
-                        </select>
+                        <h1>商品</h1>
+                        <p class="page-subtitle" id="products-subtitle">共 ${state.products.length} 件商品，按价格变化随时更新</p>
                     </div>
-                    <div>
-                        <label class="sr-only" for="filter-sort">排序方式</label>
-                        <select id="filter-sort">
-                            ${SORT_OPTIONS.map(([value, label]) => `
-                                <option value="${value}" ${state.filters.sort === value ? 'selected' : ''}>
-                                    ${label}
-                                </option>`).join('')}
-                        </select>
+                    <button type="button" class="btn btn-primary" data-action="add-product">
+                        ${icon('plus')} 添加商品
+                    </button>
+                </div>
+
+                <div class="toolbar">
+                    <div class="search-input-wrap">
+                        <label class="sr-only" for="product-search">搜索商品名称或条码</label>
+                        <input type="search" id="product-search" placeholder="搜索商品名称或条码"
+                            value="${esc(state.filters.q)}" autocomplete="off">
                     </div>
+                    <div class="toolbar-row">
+                        <div>
+                            <label class="sr-only" for="filter-category">按分类筛选</label>
+                            <select id="filter-category">
+                                <option value="">全部分类</option>
+                                ${categories.map((category) => `
+                                    <option value="${esc(category)}" ${state.filters.category === category ? 'selected' : ''}>
+                                        ${esc(category)}
+                                    </option>`).join('')}
+                            </select>
+                        </div>
+                        <div>
+                            <label class="sr-only" for="filter-sort">排序方式</label>
+                            <select id="filter-sort">
+                                ${SORT_OPTIONS.map(([value, label]) => `
+                                    <option value="${value}" ${state.filters.sort === value ? 'selected' : ''}>
+                                        ${label}
+                                    </option>`).join('')}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="result-meta">
+                    <span id="result-count">${products.length ? `找到 ${products.length} 件商品` : '没有匹配结果'}</span>
+                    ${hasFilters ? '<button type="button" class="section-link" data-action="clear-filters">清除筛选</button>' : ''}
                 </div>
             </div>
 
-            <div class="result-meta">
-                <span id="result-count">${products.length ? `找到 ${products.length} 件商品` : '没有匹配结果'}</span>
-                ${hasFilters ? '<button type="button" class="section-link" data-action="clear-filters">清除筛选</button>' : ''}
-            </div>
+            <div class="product-list-scroll" id="product-list-scroll">
+                <div id="product-results">${renderProductResults()}</div>
 
-            <div id="product-results">${renderProductResults()}</div>
-
-            <div class="notice notice-warning">
-                ${icon('warning')}
-                <div>商品资料只保存在此浏览器中，不会自动同步。请定期 <a href="#/data">导出备份</a>。</div>
+                <div class="notice notice-warning">
+                    ${icon('warning')}
+                    <div>商品资料只保存在此浏览器中，不会自动同步。请定期 <a href="#/data">导出备份</a>。</div>
+                </div>
             </div>
         </div>`;
 }
@@ -331,92 +335,92 @@ function renderDetail(id) {
     const marginPercent = product.sellPrice > 0 ? (margin / product.sellPrice) * 100 : 0;
 
     return `
-        <div class="page">
-            <div class="detail-topbar">
+        <div class="page page-detail">
+            <div class="detail-topbar page-topbar">
                 <a class="btn btn-ghost btn-small" href="#/products">${icon('arrow-left')} 商品列表</a>
                 <span class="spacer"></span>
                 <button type="button" class="btn btn-secondary btn-small" data-action="scroll-history">
                     ${icon('history')} 价格历史
                 </button>
-                <a class="btn btn-secondary btn-small" href="#/edit/${encodeURIComponent(product.id)}" id="edit-product">
-                    ${icon('edit')} 编辑
+            </div>
+
+            <div class="page-scroll" id="detail-scroll">
+                <div class="page-head">
+                    <div>
+                        <h1>${esc(product.name)}</h1>
+                        <div class="product-meta">
+                            <span class="category-chip">${esc(product.category || DEFAULT_CATEGORY)}</span>
+                            ${product.spec ? `<span>${esc(product.spec)}</span>` : ''}
+                        </div>
+                    </div>
+                </div>
+
+                <section class="price-panel">
+                    <div class="price-label">当前售价</div>
+                    <div class="price-main">${formatMoney(product.sellPrice)}<small>人民币</small></div>
+                    <div class="price-pair">
+                        <div>
+                            <span>进货价</span>
+                            <span>${formatMoney(product.buyPrice)}</span>
+                        </div>
+                        <div>
+                            <span>毛利</span>
+                            <span>${formatMoney(margin)}${product.sellPrice > 0 ? ` · ${marginPercent.toFixed(1)}%` : ''}</span>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="card">
+                    <h2>商品资料</h2>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <span class="info-label">商品条码</span>
+                            <span class="info-value mono">${product.barcode ? esc(product.barcode) : '<span class="muted">未填写</span>'}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">商品分类</span>
+                            <span class="info-value">${esc(product.category || DEFAULT_CATEGORY)}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">商品规格</span>
+                            <span class="info-value">${product.spec ? esc(product.spec) : '<span class="muted">未填写</span>'}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">最后更新</span>
+                            <span class="info-value">${formatDateTime(product.updatedAt)}</span>
+                        </div>
+                        <div class="info-item full">
+                            <span class="info-label">备注</span>
+                            <span class="info-value">${product.note ? nl2br(product.note) : '<span class="muted">无备注</span>'}</span>
+                        </div>
+                        <div class="info-item full">
+                            <span class="info-label">创建时间</span>
+                            <span class="info-value">${formatDateTime(product.createdAt)}</span>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="card" id="price-history">
+                    <div class="section-head" style="margin-top:0">
+                        <h2>价格历史</h2>
+                        <span class="badge">${history.length} 条</span>
+                    </div>
+                    <p class="card-desc">每次进货价或售价发生变化都会自动记录。修改名称、分类、规格或备注不会新增记录。</p>
+                    ${history.length
+                        ? `<div class="history-list">${history.map(historyItemHtml).join('')}</div>`
+                        : '<p class="muted">暂无价格历史记录。</p>'}
+                </section>
+            </div>
+
+            <div class="page-actionbar detail-actionbar">
+                <a class="btn btn-primary" href="#/edit/${encodeURIComponent(product.id)}" id="edit-product">
+                    ${icon('edit')} 编辑商品
                 </a>
-                <button type="button" class="btn btn-danger-soft btn-small" data-action="delete-product"
+                <button type="button" class="btn btn-danger-soft" data-action="delete-product"
                     data-id="${esc(product.id)}" id="delete-product">
                     ${icon('trash')} 删除
                 </button>
             </div>
-
-            <div class="page-head">
-                <div>
-                    <h1>${esc(product.name)}</h1>
-                    <div class="product-meta">
-                        <span class="category-chip">${esc(product.category || DEFAULT_CATEGORY)}</span>
-                        ${product.spec ? `<span>${esc(product.spec)}</span>` : ''}
-                    </div>
-                </div>
-            </div>
-
-            <section class="price-panel">
-                <div class="price-label">当前售价</div>
-                <div class="price-main">${formatMoney(product.sellPrice)}<small>人民币</small></div>
-                <div class="price-pair">
-                    <div>
-                        <span>进货价</span>
-                        <span>${formatMoney(product.buyPrice)}</span>
-                    </div>
-                    <div>
-                        <span>毛利</span>
-                        <span>${formatMoney(margin)}${product.sellPrice > 0 ? ` · ${marginPercent.toFixed(1)}%` : ''}</span>
-                    </div>
-                </div>
-            </section>
-
-            <section class="card">
-                <h2>商品资料</h2>
-                <div class="info-grid">
-                    <div class="info-item">
-                        <span class="info-label">商品条码</span>
-                        <span class="info-value mono">${product.barcode ? esc(product.barcode) : '<span class="muted">未填写</span>'}</span>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-label">商品分类</span>
-                        <span class="info-value">${esc(product.category || DEFAULT_CATEGORY)}</span>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-label">商品规格</span>
-                        <span class="info-value">${product.spec ? esc(product.spec) : '<span class="muted">未填写</span>'}</span>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-label">最后更新</span>
-                        <span class="info-value">${formatDateTime(product.updatedAt)}</span>
-                    </div>
-                    <div class="info-item full">
-                        <span class="info-label">备注</span>
-                        <span class="info-value">${product.note ? nl2br(product.note) : '<span class="muted">无备注</span>'}</span>
-                    </div>
-                    <div class="info-item full">
-                        <span class="info-label">创建时间</span>
-                        <span class="info-value">${formatDateTime(product.createdAt)}</span>
-                    </div>
-                </div>
-                <div class="card-actions">
-                    <a class="btn btn-primary" href="#/edit/${encodeURIComponent(product.id)}">${icon('edit')} 编辑商品</a>
-                    <button type="button" class="btn btn-secondary" data-action="delete-product"
-                        data-id="${esc(product.id)}">${icon('trash')} 删除商品</button>
-                </div>
-            </section>
-
-            <section class="card" id="price-history">
-                <div class="section-head" style="margin-top:0">
-                    <h2>价格历史</h2>
-                    <span class="badge">${history.length} 条</span>
-                </div>
-                <p class="card-desc">每次进货价或售价发生变化都会自动记录。修改名称、分类、规格或备注不会新增记录。</p>
-                ${history.length
-                    ? `<div class="history-list">${history.map(historyItemHtml).join('')}</div>`
-                    : '<p class="muted">暂无价格历史记录。</p>'}
-            </section>
         </div>`;
 }
 
@@ -447,114 +451,116 @@ function renderForm(id, route) {
         : (barcodeFromScan ? '条码已从扫码结果填入，请补充商品资料后保存。' : '带 * 的字段为必填项，保存后可在商品详情中查看价格历史。');
 
     return `
-        <div class="page">
-            <div class="detail-topbar">
+        <div class="page page-form">
+            <div class="detail-topbar page-topbar">
                 <a class="btn btn-ghost btn-small" href="#${esc(backPath)}">${icon('arrow-left')} ${editing ? '商品详情' : '商品列表'}</a>
                 <span class="spacer"></span>
                 ${editing ? `<a class="btn btn-secondary btn-small" href="#/product/${encodeURIComponent(product.id)}">查看详情</a>` : ''}
             </div>
 
-            <div class="page-head">
-                <div>
-                    <h1>${editing ? '编辑商品' : '添加商品'}</h1>
-                    <p class="page-subtitle">${editing ? '修改会自动保存，无需手动提交' : '记录商品资料和当前价格'}</p>
+            <div class="page-scroll" id="form-scroll">
+                <div class="page-head">
+                    <div>
+                        <h1>${editing ? '编辑商品' : '添加商品'}</h1>
+                        <p class="page-subtitle">${editing ? '修改会自动保存，无需手动提交' : '记录商品资料和当前价格'}</p>
+                    </div>
                 </div>
+
+                <form class="card" id="product-form" novalidate>
+                    <div class="form-grid two">
+                        <div class="form-group">
+                            <label for="product-name">商品名称<span class="required">*</span></label>
+                            <input type="text" id="product-name" data-field="name" maxlength="80"
+                                value="${esc(values.name)}" placeholder="例如：可乐 500ml" autocomplete="off">
+                            <span class="field-error" id="err-name" data-error-for="name"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="product-barcode">商品条码 <span class="form-hint">（可选）</span></label>
+                            <div class="input-action-row">
+                                <input type="text" id="product-barcode" data-field="barcode" maxlength="64"
+                                    value="${esc(values.barcode)}" placeholder="扫码或手动输入" autocomplete="off">
+                                <button type="button" class="btn btn-secondary" data-action="scan" data-context="form">
+                                    ${icon('scan')} 扫码
+                                </button>
+                            </div>
+                            <span class="field-error" id="err-barcode" data-error-for="barcode"></span>
+                            <span class="form-hint">非空条码不能与其他商品重复</span>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="product-spec">商品规格</label>
+                            <input type="text" id="product-spec" data-field="spec" maxlength="80"
+                                value="${esc(values.spec)}" placeholder="例如：500ml / 500g / 一箱 12 瓶">
+                            <span class="field-error" id="err-spec" data-error-for="spec"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="product-category">商品分类</label>
+                            <input type="text" id="product-category" data-field="category" maxlength="40"
+                                value="${esc(values.category)}" placeholder="例如：饮料、日用品" list="category-options"
+                                autocomplete="off">
+                            <datalist id="category-options">
+                                ${categories.map((category) => `<option value="${esc(category)}"></option>`).join('')}
+                            </datalist>
+                            <span class="field-error" id="err-category" data-error-for="category"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="product-buy-price">进货价<span class="required">*</span></label>
+                            <div class="input-with-prefix">
+                                <span class="prefix">¥</span>
+                                <input type="number" id="product-buy-price" data-field="buyPrice" inputmode="decimal"
+                                    min="0" step="0.01" value="${values.buyPrice === '' ? '' : esc(values.buyPrice)}"
+                                    placeholder="0.00">
+                            </div>
+                            <span class="field-error" id="err-buyPrice" data-error-for="buyPrice"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="product-sell-price">售价<span class="required">*</span></label>
+                            <div class="input-with-prefix">
+                                <span class="prefix">¥</span>
+                                <input type="number" id="product-sell-price" data-field="sellPrice" inputmode="decimal"
+                                    min="0" step="0.01" value="${values.sellPrice === '' ? '' : esc(values.sellPrice)}"
+                                    placeholder="0.00">
+                            </div>
+                            <span class="field-error" id="err-sellPrice" data-error-for="sellPrice"></span>
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="margin-top:15px">
+                        <label for="product-note">备注</label>
+                        <textarea id="product-note" data-field="note" maxlength="1000"
+                            placeholder="例如：常备货、供应商电话、陈列位置">${esc(values.note)}</textarea>
+                        <span class="field-error" id="err-note" data-error-for="note"></span>
+                    </div>
+
+                    <div class="form-status" id="form-status">${esc(statusText)}</div>
+                </form>
+
+                ${editing ? `
+                    <section class="card">
+                        <h2>记录信息</h2>
+                        <div class="info-grid">
+                            <div class="info-item">
+                                <span class="info-label">创建时间</span>
+                                <span class="info-value">${formatDateTime(product.createdAt)}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">最后更新</span>
+                                <span class="info-value" id="form-updated-at">${formatDateTime(product.updatedAt)}</span>
+                            </div>
+                        </div>
+                    </section>` : ''}
             </div>
 
-            <form class="card" id="product-form" novalidate>
-                <div class="form-grid two">
-                    <div class="form-group">
-                        <label for="product-name">商品名称<span class="required">*</span></label>
-                        <input type="text" id="product-name" data-field="name" maxlength="80"
-                            value="${esc(values.name)}" placeholder="例如：可乐 500ml" autocomplete="off" autofocus>
-                        <span class="field-error" id="err-name" data-error-for="name"></span>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="product-barcode">商品条码 <span class="form-hint">（可选）</span></label>
-                        <div class="input-action-row">
-                            <input type="text" id="product-barcode" data-field="barcode" maxlength="64"
-                                value="${esc(values.barcode)}" placeholder="扫码或手动输入" autocomplete="off">
-                            <button type="button" class="btn btn-secondary" data-action="scan" data-context="form">
-                                ${icon('scan')} 扫码
-                            </button>
-                        </div>
-                        <span class="field-error" id="err-barcode" data-error-for="barcode"></span>
-                        <span class="form-hint">非空条码不能与其他商品重复</span>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="product-spec">商品规格</label>
-                        <input type="text" id="product-spec" data-field="spec" maxlength="80"
-                            value="${esc(values.spec)}" placeholder="例如：500ml / 500g / 一箱 12 瓶">
-                        <span class="field-error" id="err-spec" data-error-for="spec"></span>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="product-category">商品分类</label>
-                        <input type="text" id="product-category" data-field="category" maxlength="40"
-                            value="${esc(values.category)}" placeholder="例如：饮料、日用品" list="category-options"
-                            autocomplete="off">
-                        <datalist id="category-options">
-                            ${categories.map((category) => `<option value="${esc(category)}"></option>`).join('')}
-                        </datalist>
-                        <span class="field-error" id="err-category" data-error-for="category"></span>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="product-buy-price">进货价<span class="required">*</span></label>
-                        <div class="input-with-prefix">
-                            <span class="prefix">¥</span>
-                            <input type="number" id="product-buy-price" data-field="buyPrice" inputmode="decimal"
-                                min="0" step="0.01" value="${values.buyPrice === '' ? '' : esc(values.buyPrice)}"
-                                placeholder="0.00">
-                        </div>
-                        <span class="field-error" id="err-buyPrice" data-error-for="buyPrice"></span>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="product-sell-price">售价<span class="required">*</span></label>
-                        <div class="input-with-prefix">
-                            <span class="prefix">¥</span>
-                            <input type="number" id="product-sell-price" data-field="sellPrice" inputmode="decimal"
-                                min="0" step="0.01" value="${values.sellPrice === '' ? '' : esc(values.sellPrice)}"
-                                placeholder="0.00">
-                        </div>
-                        <span class="field-error" id="err-sellPrice" data-error-for="sellPrice"></span>
-                    </div>
-                </div>
-
-                <div class="form-group" style="margin-top:15px">
-                    <label for="product-note">备注</label>
-                    <textarea id="product-note" data-field="note" maxlength="1000"
-                        placeholder="例如：常备货、供应商电话、陈列位置">${esc(values.note)}</textarea>
-                    <span class="field-error" id="err-note" data-error-for="note"></span>
-                </div>
-
-                <div class="form-status" id="form-status">${esc(statusText)}</div>
-
-                <div class="form-footer">
-                    <button type="submit" class="btn btn-primary" id="save-product">
-                        ${icon('check')} 保存商品
-                    </button>
-                    <a class="btn btn-secondary" href="#${esc(backPath)}">取消</a>
-                </div>
-            </form>
-
-            ${editing ? `
-                <section class="card">
-                    <h2>记录信息</h2>
-                    <div class="info-grid">
-                        <div class="info-item">
-                            <span class="info-label">创建时间</span>
-                            <span class="info-value">${formatDateTime(product.createdAt)}</span>
-                        </div>
-                        <div class="info-item">
-                            <span class="info-label">最后更新</span>
-                            <span class="info-value" id="form-updated-at">${formatDateTime(product.updatedAt)}</span>
-                        </div>
-                    </div>
-                </section>` : ''}
+            <div class="page-actionbar form-actionbar">
+                <a class="btn btn-secondary" href="#${esc(backPath)}">取消</a>
+                <button type="submit" class="btn btn-primary" id="save-product" form="product-form">
+                    ${icon('check')} 保存商品
+                </button>
+            </div>
         </div>`;
 }
 

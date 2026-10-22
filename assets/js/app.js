@@ -30,6 +30,29 @@ function currentNavKey(viewName) {
     return 'products';
 }
 
+const WORKSPACE_VIEWS = new Set(['products', 'detail', 'edit', 'new']);
+
+function applyViewMode(viewName) {
+    document.body.dataset.view = viewName;
+    document.body.classList.remove('view-home', 'view-products', 'view-detail', 'view-edit', 'view-new', 'view-data');
+    document.body.classList.add(`view-${viewName}`);
+    document.body.classList.toggle('workspace-view', WORKSPACE_VIEWS.has(viewName));
+}
+
+function isEditableElement(element) {
+    if (!element || !element.matches) return false;
+    return element.matches('input, textarea, select, [contenteditable="true"]');
+}
+
+function updateInputFocusState() {
+    const view = document.body.dataset.view;
+    const compact = window.matchMedia('(pointer: coarse), (max-width: 900px)').matches;
+    const typing = compact
+        && (view === 'edit' || view === 'new')
+        && isEditableElement(document.activeElement);
+    document.body.classList.toggle('input-focused', typing);
+}
+
 function updateNavigation(viewName) {
     const navKey = currentNavKey(viewName);
     $$('[data-nav]').forEach((link) => {
@@ -79,11 +102,13 @@ function renderRoute(options = {}) {
     }
 
     state.currentRoute = route;
+    applyViewMode(viewName);
     const app = $('#app');
     app.innerHTML = html;
     document.title = `${title} · 店价宝 ShopPrice`;
     updateNavigation(viewName);
     bindView(route, viewName);
+    updateInputFocusState();
     if (!options.keepScroll) window.scrollTo({ top: 0, behavior: 'auto' });
 }
 
@@ -625,6 +650,12 @@ function init() {
     document.addEventListener('click', handleGlobalClick);
     document.addEventListener('change', handleGlobalChange);
     document.addEventListener('keydown', handleGlobalKeydown);
+    document.addEventListener('focusin', updateInputFocusState);
+    document.addEventListener('focusout', () => setTimeout(updateInputFocusState, 0));
+    window.addEventListener('resize', updateInputFocusState);
+    if (window.visualViewport) {
+        window.visualViewport.addEventListener('resize', updateInputFocusState);
+    }
     window.addEventListener('hashchange', handleHashChange);
     window.addEventListener('beforeunload', () => {
         flushEditAutosave();

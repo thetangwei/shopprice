@@ -6,7 +6,7 @@
 
 const APP = Object.freeze({
     name: '店价宝 ShopPrice',
-    version: '2.0.1',
+    version: '2.1.0',
     backupFormat: 'shopprice-backup',
     schemaVersion: 1
 });
