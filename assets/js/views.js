@@ -111,7 +111,7 @@ function renderHome(route) {
             <section class="hero">
                 <div>
                     <p class="hero-eyebrow">小店商品价格管理工具</p>
-                    <h1>商品扫码查，<br>价格随时记。</h1>
+                    <h1>商品扫码查，价格随时记。</h1>
                     <p class="hero-desc">记录商品的进货价、售价和每一次价格变化。无需登录，打开就能用。</p>
                 </div>
                 <div class="hero-actions">
@@ -138,18 +138,21 @@ function renderHome(route) {
             </form>
 
             <div class="stat-grid">
-                <div class="stat-card">
-                    <div class="stat-label">商品总数</div>
-                    <div class="stat-value">${products.length}<small>件</small></div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-label">商品分类</div>
-                    <div class="stat-value">${categories.length}<small>类</small></div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-label">价格记录</div>
-                    <div class="stat-value">${state.history.length}<small>条</small></div>
-                </div>
+                <button type="button" class="stat-card" data-action="home-jump" data-jump="list"
+                    aria-label="查看商品列表">
+                    <span class="stat-label">商品总数</span>
+                    <span class="stat-value">${products.length}<small>件</small></span>
+                </button>
+                <button type="button" class="stat-card" data-action="home-jump" data-jump="category"
+                    aria-label="按分类筛选商品">
+                    <span class="stat-label">商品分类</span>
+                    <span class="stat-value">${categories.length}<small>类</small></span>
+                </button>
+                <button type="button" class="stat-card" data-action="home-jump" data-jump="history"
+                    aria-label="查看最近一条价格记录">
+                    <span class="stat-label">价格记录</span>
+                    <span class="stat-value">${state.history.filter(historyEntryHasChange).length}<small>条</small></span>
+                </button>
             </div>
 
             <div class="section-head">
@@ -290,6 +293,13 @@ function historyChangeHtml(label, before, after) {
 
 function historyItemHtml(entry) {
     const initial = entry.beforeBuyPrice === null && entry.beforeSellPrice === null;
+    const changes = [];
+    if (initial || Number(entry.beforeBuyPrice) !== Number(entry.afterBuyPrice)) {
+        changes.push(historyChangeHtml('进货价', entry.beforeBuyPrice, entry.afterBuyPrice));
+    }
+    if (initial || Number(entry.beforeSellPrice) !== Number(entry.afterSellPrice)) {
+        changes.push(historyChangeHtml('售价', entry.beforeSellPrice, entry.afterSellPrice));
+    }
     return `
         <div class="history-item ${initial ? 'initial' : ''}"
             data-history-id="${esc(entry.id)}"
@@ -301,10 +311,7 @@ function historyItemHtml(entry) {
                 <span>${formatDateTime(entry.changedAt)}</span>
                 <span class="badge ${initial ? 'badge-accent' : ''}">${esc(PRICE_SOURCE_LABELS[entry.source] || '编辑')}</span>
             </div>
-            <div class="history-changes">
-                ${historyChangeHtml('进货价', entry.beforeBuyPrice, entry.afterBuyPrice)}
-                ${historyChangeHtml('售价', entry.beforeSellPrice, entry.afterSellPrice)}
-            </div>
+            <div class="history-changes">${changes.join('')}</div>
         </div>`;
 }
 
@@ -328,7 +335,7 @@ function renderDetail(id) {
         return notFoundPage('商品不存在', '这件商品可能已经被删除，或链接已失效。');
     }
     const history = state.history
-        .filter((entry) => entry.productId === product.id)
+        .filter((entry) => entry.productId === product.id && historyEntryHasChange(entry))
         .sort((a, b) => new Date(b.changedAt) - new Date(a.changedAt));
 
     const margin = product.sellPrice - product.buyPrice;

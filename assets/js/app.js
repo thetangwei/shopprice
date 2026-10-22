@@ -39,18 +39,64 @@ function applyViewMode(viewName) {
     document.body.classList.toggle('workspace-view', WORKSPACE_VIEWS.has(viewName));
 }
 
-function isEditableElement(element) {
-    if (!element || !element.matches) return false;
-    return element.matches('input, textarea, select, [contenteditable="true"]');
+function flashElement(element) {
+    if (!element) return;
+    element.classList.remove('flash-target');
+    void element.offsetWidth;
+    element.classList.add('flash-target');
+    const clear = () => {
+        element.classList.remove('flash-target');
+        element.removeEventListener('animationend', clear);
+    };
+    element.addEventListener('animationend', clear);
+    setTimeout(clear, 1500);
 }
 
-function updateInputFocusState() {
-    const view = document.body.dataset.view;
-    const compact = window.matchMedia('(pointer: coarse), (max-width: 900px)').matches;
-    const typing = compact
-        && (view === 'edit' || view === 'new')
-        && isEditableElement(document.activeElement);
-    document.body.classList.toggle('input-focused', typing);
+function removeFlashParam() {
+    const raw = (window.location.hash || '').replace(/^#/, '');
+    if (!raw.includes('flash=')) return;
+    const queryIndex = raw.indexOf('?');
+    if (queryIndex === -1) return;
+    const pathPart = raw.slice(0, queryIndex);
+    const params = new URLSearchParams(raw.slice(queryIndex + 1));
+    if (!params.has('flash')) return;
+    params.delete('flash');
+    const query = params.toString();
+    const hash = `#${pathPart}${query ? `?${query}` : ''}`;
+    window.history.replaceState(null, '', `${window.location.pathname}${window.location.search}${hash}`);
+}
+
+function applyRouteFlash(route) {
+    const flash = route && route.params ? route.params.get('flash') : null;
+    if (!flash) return;
+    removeFlashParam();
+    setTimeout(() => {
+        if (flash === 'category') {
+            const select = $('#filter-category');
+            if (!select) return;
+            select.focus({ preventScroll: true });
+            if (typeof select.showPicker === 'function') {
+                try {
+                    select.showPicker();
+                } catch (error) {
+                    select.click();
+                }
+            } else {
+                select.click();
+            }
+            flashElement(select);
+            return;
+        }
+        if (flash === 'history') {
+            const history = $('#price-history');
+            if (!history) return;
+            history.scrollIntoView({ block: 'start' });
+            flashElement(history);
+            return;
+        }
+        const list = $('#product-list-scroll');
+        if (list) flashElement(list);
+    }, 60);
 }
 
 function updateNavigation(viewName) {
@@ -108,8 +154,8 @@ function renderRoute(options = {}) {
     document.title = `${title} · 店价宝 ShopPrice`;
     updateNavigation(viewName);
     bindView(route, viewName);
-    updateInputFocusState();
     if (!options.keepScroll) window.scrollTo({ top: 0, behavior: 'auto' });
+    applyRouteFlash(route);
 }
 
 function bindView(route, viewName) {
@@ -539,6 +585,29 @@ function handleGlobalClick(event) {
         case 'add-product':
             navigate('/new');
             break;
+        case 'home-jump': {
+            const jump = actionElement.dataset.jump;
+            if (jump === 'list') {
+                navigate('/products?flash=list');
+                break;
+            }
+            if (jump === 'category') {
+                navigate('/products?flash=category');
+                break;
+            }
+            if (jump === 'history') {
+                const latest = state.history
+                    .filter((entry) => historyEntryHasChange(entry) && findProduct(entry.productId))
+                    .slice()
+                    .sort((a, b) => new Date(b.changedAt) - new Date(a.changedAt))[0];
+                if (!latest) {
+                    toast('还没有价格记录，修改进货价或售价后会自动记录', 'info');
+                    break;
+                }
+                navigate(`/product/${encodeURIComponent(latest.productId)}?flash=history`);
+            }
+            break;
+        }
         case 'clear-filters':
             state.filters = { q: '', category: '', sort: 'updated' };
             renderRoute({ keepScroll: true });
@@ -650,12 +719,6 @@ function init() {
     document.addEventListener('click', handleGlobalClick);
     document.addEventListener('change', handleGlobalChange);
     document.addEventListener('keydown', handleGlobalKeydown);
-    document.addEventListener('focusin', updateInputFocusState);
-    document.addEventListener('focusout', () => setTimeout(updateInputFocusState, 0));
-    window.addEventListener('resize', updateInputFocusState);
-    if (window.visualViewport) {
-        window.visualViewport.addEventListener('resize', updateInputFocusState);
-    }
     window.addEventListener('hashchange', handleHashChange);
     window.addEventListener('beforeunload', () => {
         flushEditAutosave();

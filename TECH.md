@@ -41,7 +41,7 @@ assets/js/app.js           hash 路由、表单事件、自动保存、删除、
 - `normalizeBarcodeValue()`：条码查重时统一比较形式。
 - `readStorage()` / `persistAll()`：带异常捕获的读写；保存失败会回滚内存状态并提示。
 - `openModal()` / `toast()`：统一弹窗焦点管理和消息提示。
-- `APP.version = '2.1.0'`，`schemaVersion = 1`。
+- `APP.version = '2.2.0'`，`schemaVersion = 1`。
 
 ### 路由（app.js）
 
@@ -298,7 +298,8 @@ assets/js/app.js           hash 路由、表单事件、自动保存、删除、
 - CSS 变量定义颜色、圆角、阴影；`prefers-color-scheme` 切换深色变量。
 - 移动优先；桌面端限制内容宽度，底部导航固定，页面预留安全区内边距。
 - 商品列表、详情、编辑和添加页使用全高工作区：顶部操作栏和底部操作栏固定，仅中间内容滚动；商品列表只让结果区域滚动。
-- 编辑/添加页聚焦输入框时自动隐藏底部导航，失焦后恢复，避免移动端键盘把导航顶起。
+- 底部导航始终显示；视口使用 `interactive-widget=resizes-visual`，键盘弹出时只调整视觉视口，避免导航随布局视口上浮。
+- 首页统计卡是可点击按钮，通过路由参数触发一次性绿色描边闪烁，分别跳转商品列表、分类筛选和最近价格历史。
 - 所有按钮使用 `<button type="button">` 或表单提交按钮，避免误触发表单。
 - 弹窗打开时聚焦首个控件，关闭时归还焦点；`Esc` 关闭。
 - 图标为内联 SVG symbol，带 `aria-hidden`；图标按钮提供 `aria-label`。

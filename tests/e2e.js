@@ -143,6 +143,15 @@ fs.mkdirSync(OUT, { recursive: true });
       assert.strictEqual(snapshot.products[0].note, '只改备注，不动价格');
       assert.strictEqual(snapshot.history.length, 2);
     });
+    await check('输入时底部导航保持显示', async () => {
+      const nav = await page.evaluate(() => {
+        const el = document.querySelector('.bottom-nav');
+        const rect = el.getBoundingClientRect();
+        return { opacity: getComputedStyle(el).opacity, top: rect.top };
+      });
+      assert.strictEqual(nav.opacity, '1');
+      assert.ok(nav.top > 700);
+    });
 
     await page.reload({ waitUntil: 'networkidle' });
     await page.waitForTimeout(300);
@@ -156,9 +165,30 @@ fs.mkdirSync(OUT, { recursive: true });
     await check('详情页倒序显示价格历史', async () => {
       const items = page.locator('#price-history .history-item');
       assert.strictEqual(await items.count(), 2);
-      assert.match(await items.first().innerText(), /4\.00.*4\.50/s);
+      const latestText = await items.first().innerText();
+      assert.match(latestText, /4\.00.*4\.50/s);
+      assert.doesNotMatch(latestText, /未变/);
+      assert.doesNotMatch(latestText, /进货价/);
       assert.match(await items.last().innerText(), /初始/);
     });
+
+    await go('/home');
+    await page.click('.stat-card[data-jump="list"]');
+    await page.waitForTimeout(220);
+    await check('首页商品总数跳转商品列表并高亮', async () => {
+      assert.strictEqual(await page.evaluate(() => location.hash), '#/products');
+      assert.strictEqual(await page.locator('#product-list-scroll.flash-target').count(), 1);
+    });
+    await page.waitForTimeout(1500);
+
+    await go('/home');
+    await page.click('.stat-card[data-jump="history"]');
+    await page.waitForTimeout(320);
+    await check('首页价格记录跳转最近价格历史并高亮', async () => {
+      assert.match(await page.evaluate(() => location.hash), /^#\/product\//);
+      assert.strictEqual(await page.locator('#price-history.flash-target').count(), 1);
+    });
+    await page.waitForTimeout(1500);
 
     // 7. Search by name / barcode, category filter, sort
     await addProduct({ name: '测试面包', barcode: '6900000000002', category: '食品', buy: '3.00', sell: '5.00' });

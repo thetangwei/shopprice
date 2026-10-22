@@ -6,7 +6,7 @@
 
 const APP = Object.freeze({
     name: '店价宝 ShopPrice',
-    version: '2.1.0',
+    version: '2.2.0',
     backupFormat: 'shopprice-backup',
     schemaVersion: 1
 });
@@ -279,6 +279,15 @@ function buildPriceHistory(product, beforeBuyPrice, beforeSellPrice, source, cha
         changedAt: changedAt || nowIso(),
         source: source || 'edit'
     };
+}
+
+function historyEntryHasChange(entry) {
+    if (!entry) return false;
+    const beforeBuyMissing = entry.beforeBuyPrice === null || entry.beforeBuyPrice === undefined;
+    const beforeSellMissing = entry.beforeSellPrice === null || entry.beforeSellPrice === undefined;
+    if (beforeBuyMissing || beforeSellMissing) return true;
+    return Number(entry.beforeBuyPrice) !== Number(entry.afterBuyPrice)
+        || Number(entry.beforeSellPrice) !== Number(entry.afterSellPrice);
 }
 
 function migrateLegacyProducts(legacyProducts) {
