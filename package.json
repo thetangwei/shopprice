@@ -1,6 +1,6 @@
 {
   "name": "shopprice",
-  "version": "2.2.0",
+  "version": "2.2.1",
   "private": true,
   "description": "店价宝 ShopPrice — 小店商品价格管理工具（静态应用，测试脚本需要 Playwright）",
   "license": "MIT",

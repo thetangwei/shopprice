@@ -137,6 +137,7 @@ svg {
 }
 
 .app-shell {
+    position: relative;
     min-height: 100vh;
     display: flex;
     flex-direction: column;
@@ -251,15 +252,21 @@ svg {
 
 /* Full-height workspace pages: only the middle content scrolls. */
 body.workspace-view {
-    height: 100vh;
-    height: 100dvh;
+    height: var(--app-locked-height, 100vh);
+    height: var(--app-locked-height, 100dvh);
     overflow: hidden;
 }
 
 body.workspace-view .app-shell {
-    height: 100vh;
-    height: 100dvh;
+    height: var(--app-locked-height, 100vh);
+    height: var(--app-locked-height, 100dvh);
     min-height: 0;
+}
+
+/* Anchor navigation to the locked app box, not the visual viewport, so the
+   mobile keyboard cannot lift it above the bottom edge. */
+body.workspace-view .bottom-nav {
+    position: absolute;
 }
 
 body.workspace-view .app-main {
@@ -1544,6 +1551,13 @@ body.view-new .toast-root {
     border-radius: 18px;
     box-shadow: var(--shadow-lg);
     padding-bottom: calc(6px + env(safe-area-inset-bottom));
+}
+
+/* Keep the navigation behind the soft keyboard instead of letting some
+   mobile browsers pin it above the keyboard. */
+body.keyboard-open .bottom-nav {
+    transform: translate(-50%, calc(100% + 28px));
+    pointer-events: none;
 }
 
 .nav-item {

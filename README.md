@@ -1,6 +1,6 @@
 # 店价宝 ShopPrice
 
-![版本](https://img.shields.io/badge/version-2.2.0-0f766e?style=flat-square)
+![版本](https://img.shields.io/badge/version-2.2.1-0f766e?style=flat-square)
 ![许可](https://img.shields.io/badge/license-MIT-green?style=flat-square)
 ![离线](https://img.shields.io/badge/works-offline-success?style=flat-square)
 ![无后端](https://img.shields.io/badge/backend-none-brightgreen?style=flat-square)
@@ -76,7 +76,7 @@
 
 ### 其他
 
-- 中文界面，移动端优先，底部导航始终显示：首页 / 商品 / 数据管理；键盘弹出时不随之上浮。
+- 中文界面，移动端优先，底部导航始终显示：首页 / 商品 / 数据管理；编辑/添加页键盘弹出时导航留在底部并隐藏到键盘后方，不会浮到键盘上方。
 - 自适应浅色/深色主题，支持键盘操作和基础无障碍标签。
 - 自动识别旧版 Mini POS Market 的 `localStorage` 商品数据，一次性迁移且**不删除原始数据**。
 - 无账号、无云同步、无广告、无付费接口、无构建步骤；扫码库已本地化，运行时不请求外部网络。
@@ -310,6 +310,7 @@ shopprice/
 - 新增、校验、编辑自动保存、刷新持久化
 - 初始价格与价格变动历史规则，只展示变化的价格
 - 首页统计卡快捷跳转与绿色描边提示
+- 模拟移动键盘缩放时底部导航不浮起
 - 搜索、分类筛选、排序
 - 扫码手动回退、未知条码跳转新增
 - CSV 导出、预览、导入、更新、重复条码、旧版格式

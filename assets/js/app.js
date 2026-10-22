@@ -39,6 +39,50 @@ function applyViewMode(viewName) {
     document.body.classList.toggle('workspace-view', WORKSPACE_VIEWS.has(viewName));
 }
 
+const TOUCH_INPUT = window.matchMedia('(pointer: coarse)').matches || navigator.maxTouchPoints > 0;
+let lockedViewportHeight = 0;
+let viewportLockFrame = 0;
+let lastViewportWidth = window.innerWidth;
+
+function visibleViewportHeight() {
+    const viewport = window.visualViewport;
+    return Math.round((viewport && viewport.height) || window.innerHeight || document.documentElement.clientHeight);
+}
+
+function lockViewportHeight(force = false) {
+    const height = visibleViewportHeight();
+    if (!height) return;
+    // While a mobile keyboard is open, keep the original full height. This
+    // prevents the workspace and its navigation from shrinking upward.
+    if (!force && TOUCH_INPUT && lockedViewportHeight && height < lockedViewportHeight - 120) {
+        return;
+    }
+    lockedViewportHeight = height;
+    document.documentElement.style.setProperty('--app-locked-height', `${height}px`);
+}
+
+function syncKeyboardState() {
+    const open = TOUCH_INPUT
+        && lockedViewportHeight > 0
+        && visibleViewportHeight() < lockedViewportHeight - 120;
+    document.body.classList.toggle('keyboard-open', open);
+}
+
+function scheduleViewportLock(force = false) {
+    if (viewportLockFrame) cancelAnimationFrame(viewportLockFrame);
+    viewportLockFrame = requestAnimationFrame(() => {
+        viewportLockFrame = 0;
+        const width = window.innerWidth;
+        if (width !== lastViewportWidth) {
+            lastViewportWidth = width;
+            lockViewportHeight(true);
+        } else {
+            lockViewportHeight(force);
+        }
+        syncKeyboardState();
+    });
+}
+
 function flashElement(element) {
     if (!element) return;
     element.classList.remove('flash-target');
@@ -715,16 +759,30 @@ function handleHashChange() {
 
 function init() {
     loadData();
+    lockViewportHeight(true);
+    syncKeyboardState();
 
     document.addEventListener('click', handleGlobalClick);
     document.addEventListener('change', handleGlobalChange);
     document.addEventListener('keydown', handleGlobalKeydown);
     window.addEventListener('hashchange', handleHashChange);
+    window.addEventListener('resize', () => scheduleViewportLock(), { passive: true });
+    window.addEventListener('orientationchange', () => {
+        setTimeout(() => scheduleViewportLock(true), 180);
+    });
+    if (window.visualViewport) {
+        window.visualViewport.addEventListener('resize', () => scheduleViewportLock());
+    }
+    document.addEventListener('focusin', () => scheduleViewportLock());
+    document.addEventListener('focusout', () => {
+        setTimeout(() => scheduleViewportLock(), 120);
+    });
     window.addEventListener('beforeunload', () => {
         flushEditAutosave();
     });
     document.addEventListener('visibilitychange', () => {
         if (document.hidden) flushEditAutosave();
+        else scheduleViewportLock();
     });
 
     if (!window.location.hash) {
